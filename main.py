@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, request  # <-- AGREGAR request AQUÍ
 from flask_socketio import SocketIO, emit
 import logging
 from datetime import datetime
@@ -57,6 +57,11 @@ def index():
                 document.getElementById('users').textContent = 'Usuarios: ' + data.count;
             });
             
+            socket.on('chat_message', function(data) {
+                console.log('Mensaje recibido:', data);
+                // Aquí podrías mostrar el mensaje en la interfaz
+            });
+            
             socket.on('disconnect', function() {
                 document.getElementById('status').textContent = 'Estado: DESCONECTADO';
             });
@@ -93,7 +98,7 @@ def handle_register(data):
     usernames[request.sid] = username
     
     logger.info(f"👤 Usuario registrado: {username}")
-    emit('users_list', {'users_online': list(usernames.values())})
+    emit('users_update', {'count': len(clients)}, broadcast=True)
     emit('user_joined', {'username': username}, broadcast=True)
 
 @socketio.on('chat_message')
